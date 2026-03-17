@@ -43,12 +43,10 @@ from .const import (
     CONF_PROMPT,
     CONF_RECOMMENDED,
     CONF_TEMPERATURE,
-    CONF_TOP_P,
     DEFAULT_CHAT_MODEL,
     DEFAULT_CONVERSATION_NAME,
     DEFAULT_MAX_TOKENS,
     DEFAULT_TEMPERATURE,
-    DEFAULT_TOP_P,
     DOMAIN,
 )
 
@@ -308,10 +306,6 @@ class ConversationSubentryFlowHandler(ConfigSubentryFlow):
             vol.Optional(
                 CONF_TEMPERATURE,
                 default=self.options.get(CONF_TEMPERATURE, DEFAULT_TEMPERATURE),
-            ): NumberSelector(NumberSelectorConfig(min=0, max=1, step=0.05)),
-            vol.Optional(
-                CONF_TOP_P,
-                default=self.options.get(CONF_TOP_P, DEFAULT_TOP_P),
             ): NumberSelector(NumberSelectorConfig(min=0, max=1, step=0.05)),
         }
 

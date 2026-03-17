@@ -65,13 +65,11 @@
             "chat_model": "Model",
             "max_tokens": "Maximum output tokens",
             "temperature": "Temperature",
-            "top_p": "Top P"
           },
           "data_description": {
             "chat_model": "The Bedrock model to use. Choose a model that is enabled in your AWS account.",
             "max_tokens": "Maximum number of tokens to generate in the response.",
             "temperature": "Controls randomness (0 = deterministic, 1 = very random).",
-            "top_p": "Nucleus sampling parameter. Lower values make the output more focused."
           }
         }
       },

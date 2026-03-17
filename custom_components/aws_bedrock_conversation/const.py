@@ -12,7 +12,6 @@ CONF_AWS_REGION = "aws_region"
 CONF_CHAT_MODEL = "chat_model"
 CONF_MAX_TOKENS = "max_tokens"
 CONF_TEMPERATURE = "temperature"
-CONF_TOP_P = "top_p"
 CONF_PROMPT = "prompt"
 CONF_RECOMMENDED = "recommended"
 
@@ -22,7 +21,6 @@ DEFAULT_AI_TASK_NAME = "AWS Bedrock AI Task"
 DEFAULT_CHAT_MODEL = "amazon.nova-pro-v1:0"
 DEFAULT_MAX_TOKENS = 2048
 DEFAULT_TEMPERATURE = 0.7
-DEFAULT_TOP_P = 0.9
 
 # Max agentic loop iterations to prevent infinite loops
 MAX_TOOL_ITERATIONS = 10

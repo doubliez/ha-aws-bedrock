@@ -27,11 +27,9 @@ from .const import (
     CONF_CHAT_MODEL,
     CONF_MAX_TOKENS,
     CONF_TEMPERATURE,
-    CONF_TOP_P,
     DEFAULT_CHAT_MODEL,
     DEFAULT_MAX_TOKENS,
     DEFAULT_TEMPERATURE,
-    DEFAULT_TOP_P,
     DOMAIN,
     MAX_TOOL_ITERATIONS,
     TOOL_USE_SUPPORTED_MODELS,
@@ -178,7 +176,6 @@ class BedrockBaseLLMEntity(Entity):
         model_id: str = options.get(CONF_CHAT_MODEL, DEFAULT_CHAT_MODEL)
         max_tokens: int = options.get(CONF_MAX_TOKENS, DEFAULT_MAX_TOKENS)
         temperature: float = options.get(CONF_TEMPERATURE, DEFAULT_TEMPERATURE)
-        top_p: float = options.get(CONF_TOP_P, DEFAULT_TOP_P)
         supports_tools = _model_supports_tools(model_id)
 
         response: dict[str, Any] = {}
@@ -200,7 +197,6 @@ class BedrockBaseLLMEntity(Entity):
                 "inferenceConfig": {
                     "maxTokens": max_tokens,
                     "temperature": temperature,
-                    "topP": top_p,
                 },
             }
             if system:
