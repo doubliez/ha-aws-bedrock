@@ -1,0 +1,90 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to AWS Bedrock",
+        "description": "Enter your AWS credentials. The IAM user or role must have `bedrock:InvokeModel` and `bedrock:ListFoundationModels` permissions. [Learn more]({docs_url})",
+        "data": {
+          "aws_access_key_id": "AWS Access Key ID",
+          "aws_secret_access_key": "AWS Secret Access Key",
+          "aws_region": "AWS Region"
+        },
+        "data_description": {
+          "aws_access_key_id": "Your AWS IAM access key ID",
+          "aws_secret_access_key": "Your AWS IAM secret access key",
+          "aws_region": "The AWS region where Bedrock models are deployed"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Re-authenticate AWS Bedrock",
+        "description": "Your AWS credentials need to be updated.",
+        "data": {
+          "aws_access_key_id": "AWS Access Key ID",
+          "aws_secret_access_key": "AWS Secret Access Key",
+          "aws_region": "AWS Region"
+        }
+      }
+    },
+    "error": {
+      "invalid_credentials": "Invalid AWS credentials. Please check your Access Key ID and Secret Access Key.",
+      "access_denied": "Access denied. Ensure your IAM user/role has `bedrock:ListFoundationModels` and `bedrock:InvokeModel` permissions.",
+      "invalid_region": "Invalid or unsupported AWS region.",
+      "cannot_connect": "Unable to connect to AWS Bedrock. Check your network and region.",
+      "unknown": "Unexpected error. Please check the logs."
+    },
+    "abort": {
+      "already_configured": "An AWS Bedrock integration with these credentials already exists.",
+      "reauth_successful": "Re-authentication was successful."
+    }
+  },
+  "config_subentries": {
+    "conversation": {
+      "initiate_flow": {
+        "user": "Add conversation agent",
+        "reconfigure": "Configure conversation agent"
+      },
+      "entry_type": "Conversation agent",
+      "step": {
+        "init": {
+          "title": "Configure conversation agent",
+          "data": {
+            "name": "Name",
+            "prompt": "System prompt",
+            "llm_hass_api": "Home Assistant APIs",
+            "recommended": "Use recommended settings"
+          },
+          "data_description": {
+            "prompt": "Override the default system prompt. Leave blank to use the default.",
+            "llm_hass_api": "Enable Home Assistant control tools (allows the AI to turn on lights, read sensors, etc.)",
+            "recommended": "Use recommended model and settings. Disable to customize the model and parameters."
+          }
+        },
+        "advanced": {
+          "title": "Advanced model settings",
+          "data": {
+            "chat_model": "Model",
+            "max_tokens": "Maximum output tokens",
+            "temperature": "Temperature",
+            "top_p": "Top P"
+          },
+          "data_description": {
+            "chat_model": "The Bedrock model to use. Choose a model that is enabled in your AWS account.",
+            "max_tokens": "Maximum number of tokens to generate in the response.",
+            "temperature": "Controls randomness (0 = deterministic, 1 = very random).",
+            "top_p": "Nucleus sampling parameter. Lower values make the output more focused."
+          }
+        }
+      },
+      "abort": {
+        "entry_not_loaded": "Cannot add a conversation agent while the integration is not loaded."
+      }
+    }
+  },
+  "entity": {
+    "conversation": {
+      "conversation": {
+        "name": "Conversation"
+      }
+    }
+  }
+}
