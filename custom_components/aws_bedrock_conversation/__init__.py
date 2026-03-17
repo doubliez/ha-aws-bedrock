@@ -9,15 +9,23 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 
+from .audit import async_run_audit
 from .const import (
     CONF_AWS_ACCESS_KEY_ID,
     CONF_AWS_REGION,
     CONF_AWS_SECRET_ACCESS_KEY,
+    DOMAIN,
 )
 
 PLATFORMS = [Platform.CONVERSATION]
 
 type BedrockConfigEntry = ConfigEntry[boto3.client]
+
+
+async def async_setup(hass: HomeAssistant, config: dict) -> bool:
+    """Register domain-level services."""
+    hass.services.async_register(DOMAIN, "run_audit", async_run_audit)
+    return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: BedrockConfigEntry) -> bool:

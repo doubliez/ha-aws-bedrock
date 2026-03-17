@@ -84,5 +84,11 @@
         "name": "Conversation"
       }
     }
+  },
+  "services": {
+    "run_audit": {
+      "name": "Run setup audit",
+      "description": "Analyses all entities and devices using an AWS Bedrock model and posts a report as a persistent notification with recommendations to delete stale entities, rename poorly named ones, and fix potential issues."
+    }
   }
 }
