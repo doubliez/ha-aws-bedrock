@@ -64,12 +64,12 @@
           "data": {
             "chat_model": "Model",
             "max_tokens": "Maximum output tokens",
-            "temperature": "Temperature",
+            "temperature": "Temperature"
           },
           "data_description": {
             "chat_model": "The Bedrock model to use. Choose a model that is enabled in your AWS account.",
             "max_tokens": "Maximum number of tokens to generate in the response.",
-            "temperature": "Controls randomness (0 = deterministic, 1 = very random).",
+            "temperature": "Controls randomness (0 = deterministic, 1 = very random)."
           }
         }
       },
