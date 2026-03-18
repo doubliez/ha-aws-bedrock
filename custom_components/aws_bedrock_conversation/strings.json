@@ -89,6 +89,24 @@
     "run_audit": {
       "name": "Run setup audit",
       "description": "Analyses all entities and devices using an AWS Bedrock model and posts a report as a persistent notification with recommendations to delete stale entities, rename poorly named ones, and fix potential issues."
+    },
+    "analyze_image": {
+      "name": "Analyze image",
+      "description": "Sends an image to AWS Bedrock for analysis and returns a text description. Use in automations with response_variable to get the description.",
+      "fields": {
+        "camera_entity_id": {
+          "name": "Camera entity",
+          "description": "The camera entity to capture a frame from. Use this or image_path."
+        },
+        "image_path": {
+          "name": "Image file path",
+          "description": "Absolute path to an image file on disk (JPEG, PNG, GIF, or WebP). Use this or camera_entity_id."
+        },
+        "prompt": {
+          "name": "Prompt",
+          "description": "Instruction for the model. Defaults to a general description prompt."
+        }
+      }
     }
   }
 }
