@@ -8,8 +8,10 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.helpers import llm
 
 from .audit import async_run_audit
+from .tools import BedrockToolsAPI
 from .const import (
     CONF_AWS_ACCESS_KEY_ID,
     CONF_AWS_REGION,
@@ -23,8 +25,9 @@ type BedrockConfigEntry = ConfigEntry[boto3.client]
 
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
-    """Register domain-level services."""
+    """Register domain-level services and custom LLM tools."""
     hass.services.async_register(DOMAIN, "run_audit", async_run_audit)
+    llm.async_register_api(hass, BedrockToolsAPI(hass))
     return True
 
 
