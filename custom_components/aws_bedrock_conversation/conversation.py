@@ -37,7 +37,7 @@ class BedrockConversationEntity(
 ):
     """AWS Bedrock conversation agent entity."""
 
-    _attr_supports_streaming = False
+    _attr_supports_streaming = True
 
     def __init__(
         self, entry: BedrockConfigEntry, subentry: ConfigSubentry
