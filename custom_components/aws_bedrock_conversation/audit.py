@@ -8,11 +8,23 @@ import logging
 from datetime import UTC, datetime
 from typing import Any
 
+import boto3
+from botocore.config import Config
 from homeassistant.components import persistent_notification
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers import device_registry as dr, entity_registry as er
 
-from .const import CONF_CHAT_MODEL, DEFAULT_CHAT_MODEL, DOMAIN
+from .const import (
+    CONF_AWS_ACCESS_KEY_ID,
+    CONF_AWS_REGION,
+    CONF_AWS_SECRET_ACCESS_KEY,
+    CONF_CHAT_MODEL,
+    DEFAULT_CHAT_MODEL,
+    DOMAIN,
+)
+
+# Audits can be slow on large instances — allow up to 5 minutes for a response
+_AUDIT_READ_TIMEOUT = 300
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -125,7 +137,18 @@ async def async_run_audit(call: ServiceCall) -> None:
         _LOGGER.error("No loaded AWS Bedrock config entry found for audit")
         return
 
-    client = entry.runtime_data
+    # Create a dedicated client with a longer read timeout for the audit.
+    # The default boto3 timeout (~60s) is too short for large entity sets.
+    def _create_audit_client() -> boto3.client:
+        return boto3.client(
+            "bedrock-runtime",
+            region_name=entry.data[CONF_AWS_REGION],
+            aws_access_key_id=entry.data[CONF_AWS_ACCESS_KEY_ID],
+            aws_secret_access_key=entry.data[CONF_AWS_SECRET_ACCESS_KEY],
+            config=Config(connect_timeout=10, read_timeout=_AUDIT_READ_TIMEOUT),
+        )
+
+    client = await hass.async_add_executor_job(_create_audit_client)
 
     # Pick the model from the first conversation subentry, fall back to default
     model_id = DEFAULT_CHAT_MODEL
@@ -141,9 +164,9 @@ async def async_run_audit(call: ServiceCall) -> None:
     prompt = _AUDIT_PROMPT.format(
         today=today,
         entity_count=len(entity_rows),
-        entity_data=json.dumps(entity_rows, indent=2),
+        entity_data=json.dumps(entity_rows, separators=(",", ":")),
         device_count=len(device_rows),
-        device_data=json.dumps(device_rows, indent=2),
+        device_data=json.dumps(device_rows, separators=(",", ":")),
     )
 
     _LOGGER.debug(
