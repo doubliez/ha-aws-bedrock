@@ -273,6 +273,10 @@ class BedrockBaseLLMEntity(Entity):
         current_tool_id: str | None = None
         current_tool_name: str | None = None
         current_tool_input: str = ""
+        # role must only appear in the first delta; subsequent deltas omit it so
+        # HA's Assist UI accumulates them into one message bubble instead of
+        # creating a new bubble for every token.
+        role_sent = False
 
         try:
             while True:
@@ -309,7 +313,11 @@ class BedrockBaseLLMEntity(Entity):
                 elif "contentBlockDelta" in event:
                     delta = event["contentBlockDelta"].get("delta", {})
                     if "text" in delta:
-                        yield {"role": "assistant", "content": delta["text"]}
+                        if not role_sent:
+                            yield {"role": "assistant", "content": delta["text"]}
+                            role_sent = True
+                        else:
+                            yield {"content": delta["text"]}
                     elif "toolUse" in delta:
                         current_tool_input += delta["toolUse"].get("input", "")
 
