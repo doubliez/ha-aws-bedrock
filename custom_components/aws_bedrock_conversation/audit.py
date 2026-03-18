@@ -154,17 +154,14 @@ async def async_run_audit(call: ServiceCall) -> None:
     )
 
     # Show a "running" notification immediately so the user knows it's working
-    await hass.services.async_call(
-        persistent_notification.DOMAIN,
-        persistent_notification.SERVICE_CREATE,
-        {
-            "title": "AWS Bedrock Audit — Running…",
-            "message": (
-                f"Analysing **{len(entity_rows)} entities** and "
-                f"**{len(device_rows)} devices**. This may take up to a minute."
-            ),
-            "notification_id": "aws_bedrock_audit",
-        },
+    persistent_notification.async_create(
+        hass,
+        message=(
+            f"Analysing **{len(entity_rows)} entities** and "
+            f"**{len(device_rows)} devices**. This may take up to a minute."
+        ),
+        title="AWS Bedrock Audit — Running…",
+        notification_id="aws_bedrock_audit",
     )
 
     try:
@@ -181,27 +178,21 @@ async def async_run_audit(call: ServiceCall) -> None:
         )
     except Exception as err:
         _LOGGER.error("Bedrock audit failed: %s", err)
-        await hass.services.async_call(
-            persistent_notification.DOMAIN,
-            persistent_notification.SERVICE_CREATE,
-            {
-                "title": "AWS Bedrock Audit — Failed",
-                "message": f"The audit failed with an error:\n\n`{err}`",
-                "notification_id": "aws_bedrock_audit",
-            },
+        persistent_notification.async_create(
+            hass,
+            message=f"The audit failed with an error:\n\n`{err}`",
+            title="AWS Bedrock Audit — Failed",
+            notification_id="aws_bedrock_audit",
         )
         return
 
     report = response["output"]["message"]["content"][0]["text"]
 
-    await hass.services.async_call(
-        persistent_notification.DOMAIN,
-        persistent_notification.SERVICE_CREATE,
-        {
-            "title": "AWS Bedrock Setup Audit",
-            "message": report,
-            "notification_id": "aws_bedrock_audit",
-        },
+    persistent_notification.async_create(
+        hass,
+        message=report,
+        title="AWS Bedrock Setup Audit",
+        notification_id="aws_bedrock_audit",
     )
 
     _LOGGER.info("Bedrock audit complete (%d entities analysed)", len(entity_rows))
