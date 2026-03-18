@@ -7,6 +7,7 @@ import functools
 import json
 import logging
 from collections.abc import AsyncIterator
+from datetime import date, datetime
 from typing import Any
 
 from botocore.exceptions import ClientError
@@ -39,6 +40,15 @@ from .const import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+
+class _ToolResultEncoder(json.JSONEncoder):
+    """JSON encoder that handles types commonly found in HA tool results."""
+
+    def default(self, o: object) -> object:
+        if isinstance(o, (datetime, date)):
+            return o.isoformat()
+        return super().default(o)
 
 
 def _model_supports_tools(model_id: str) -> bool:
@@ -159,7 +169,7 @@ def _convert_messages(
             tool_result_block: dict[str, Any] = {
                 "toolResult": {
                     "toolUseId": item.tool_call_id,
-                    "content": [{"text": json.dumps(item.tool_result)}],
+                    "content": [{"text": json.dumps(item.tool_result, cls=_ToolResultEncoder)}],
                     "status": "success",
                 }
             }
