@@ -11,7 +11,6 @@ import voluptuous as vol
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import llm
-from homeassistant.helpers.typing import JsonObjectType
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -69,7 +68,7 @@ class GetDashboardsTool(llm.Tool):
         hass: HomeAssistant,
         tool_input: llm.ToolInput,
         llm_context: llm.LLMContext,
-    ) -> JsonObjectType:
+    ) -> dict[str, Any]:
         """Load and return all Lovelace dashboard configurations."""
         dashboards = await hass.async_add_executor_job(
             _load_lovelace_configs, hass.config.config_dir
