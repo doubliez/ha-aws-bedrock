@@ -8,6 +8,7 @@ import os
 from typing import Any
 
 import voluptuous as vol
+import yaml
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import llm
@@ -43,11 +44,13 @@ class BedrockToolsAPI(llm.API):
                 "- Use get_dashboards to inspect Lovelace dashboard layouts and "
                 "suggest improvements, spot broken entity references, or identify "
                 "cluttered views.\n"
+                "- Use get_automations to read automation configs and help debug, "
+                "explain, or improve them. Accepts an optional search filter.\n"
                 "Only call these tools when the user explicitly asks you to examine "
                 "or improve their Home Assistant setup."
             ),
             llm_context=llm_context,
-            tools=[GetDashboardsTool()],
+            tools=[GetDashboardsTool(), GetAutomationsTool()],
         )
 
 
@@ -74,6 +77,103 @@ class GetDashboardsTool(llm.Tool):
             _load_lovelace_configs, hass.config.config_dir
         )
         return {"dashboards": dashboards}
+
+
+class GetAutomationsTool(llm.Tool):
+    """Returns Home Assistant automation configurations for analysis."""
+
+    name = "get_automations"
+    description = (
+        "Returns Home Assistant automation configurations. "
+        "Use this when the user asks you to review, debug, explain, or improve "
+        "their automations. Pass a search string to filter by name or description "
+        "when the user mentions a specific automation or topic."
+    )
+    parameters = vol.Schema(
+        {
+            vol.Optional(
+                "search",
+                description=(
+                    "Case-insensitive substring to filter automations by alias or "
+                    "description. Omit to return all automations."
+                ),
+            ): str,
+        }
+    )
+
+    async def async_call(
+        self,
+        hass: HomeAssistant,
+        tool_input: llm.ToolInput,
+        llm_context: llm.LLMContext,
+    ) -> dict[str, Any]:
+        """Load automations and enrich with live entity state."""
+        search: str = (tool_input.tool_args.get("search") or "").lower().strip()
+
+        automations = await hass.async_add_executor_job(
+            _load_automation_configs, hass.config.config_dir
+        )
+
+        # Build id → state map from live automation entities so we can add
+        # last_triggered and enabled status without a separate tool call.
+        state_by_id: dict[str, Any] = {}
+        for state in hass.states.async_all("automation"):
+            auto_id = state.attributes.get("id")
+            if auto_id:
+                state_by_id[auto_id] = state
+
+        enriched = []
+        for auto in automations:
+            auto_id = auto.get("id")
+            if auto_id and auto_id in state_by_id:
+                s = state_by_id[auto_id]
+                auto["enabled"] = s.state == "on"
+                auto["last_triggered"] = s.attributes.get("last_triggered")
+            enriched.append(auto)
+
+        if search:
+            enriched = [
+                a
+                for a in enriched
+                if search in (a.get("alias") or "").lower()
+                or search in (a.get("description") or "").lower()
+            ]
+
+        return {"count": len(enriched), "automations": enriched}
+
+
+def _load_automation_configs(config_dir: str) -> list[dict[str, Any]]:
+    """Load automation configs from storage and/or YAML.
+
+    Checks .storage/core.automation (UI-created automations) first, then
+    falls back to automations.yaml for YAML-mode setups.
+    Runs in an executor since it does file I/O.
+    """
+    automations: list[dict[str, Any]] = []
+
+    # --- storage-mode automations ---
+    storage_path = os.path.join(config_dir, ".storage", "core.automation")
+    if os.path.isfile(storage_path):
+        try:
+            with open(storage_path) as fh:
+                raw = json.load(fh)
+            items = raw.get("data", {}).get("items", [])
+            automations.extend(items)
+        except Exception as err:  # noqa: BLE001
+            _LOGGER.warning("Could not read core.automation storage: %s", err)
+
+    # --- YAML-mode automations (automations.yaml) ---
+    yaml_path = os.path.join(config_dir, "automations.yaml")
+    if os.path.isfile(yaml_path) and not automations:
+        try:
+            with open(yaml_path) as fh:
+                items = yaml.safe_load(fh) or []
+            if isinstance(items, list):
+                automations.extend(items)
+        except Exception as err:  # noqa: BLE001
+            _LOGGER.warning("Could not read automations.yaml: %s", err)
+
+    return automations
 
 
 def _load_lovelace_configs(config_dir: str) -> dict[str, Any]:
